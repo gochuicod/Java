@@ -1,0 +1,3 @@
+A program that would accept two double values which represents, the opposite and the adjacent
+section of the triangle. Compute and display the are and perimeter. Display also the derived value
+of the hypotenuse
