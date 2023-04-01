@@ -47,7 +47,7 @@ public class GraphTraversal {
     public void breadthFirstSearch(String s, String g) {
         Queue<Node> q = new LinkedList<Node>();
         Node start_node = getNodeByName(s.toLowerCase());
-        if(start_node == null) {
+        if(start_node == null || g == null) {
             System.out.println("Error: unable to find the string place!");
             return;
         } else {/*nothing todo */}
@@ -88,7 +88,7 @@ public class GraphTraversal {
     public void depthFirstSearch(String s, String g) {
         Stack<Node> st = new Stack<Node>();
         Node start_node = getNodeByName(s.toLowerCase());
-        if(start_node == null) {
+        if(start_node == null || g == null) {
             System.out.println("Error: unable to find the string place!");
             return;
         } else {/*nothing todo */}
@@ -97,11 +97,10 @@ public class GraphTraversal {
         
         start_node.isVisited = true;
         
-        while(st.size() > 0) 
-        {
+        while(st.size() > 0){
             Node v = st.pop();
 
-            if(v.name.equals(g.toLowerCase())) {
+            if(v.name.equals(g.toLowerCase())){
                 reconstruct_path(v);
                 System.out.println("Found!");
                 unvisit();
@@ -123,7 +122,34 @@ public class GraphTraversal {
         unvisit();
         System.out.println();
         System.out.println("No solution!");
+    }
 
+    public void depthFirstSearchRecursive(String s, String g) {
+        Node start_node = getNodeByName(s.toLowerCase());
+        Node goal_node = getNodeByName(g.toLowerCase());
+
+        if (start_node == null || goal_node == null) {
+            System.out.println("Error: start node or goal node is null!");
+            return;
+        }
+
+        start_node.isVisited = true;
+        System.out.print(start_node.name + "->");
+    
+        if (start_node.name.equals(goal_node.name)) {
+            System.out.println("Found!");
+            return;
+        }
+    
+        Iterator<Neighbor> neighbor_ite = start_node.neighbors.iterator();
+        while (neighbor_ite.hasNext()) {
+            Node neighbor = neighbor_ite.next().node;
+            if (!neighbor.isVisited) {
+                if(goal_node.isVisited) return;
+                neighbor.parent = start_node;
+                depthFirstSearchRecursive(neighbor.name, goal_node.name);
+            }
+        }
     }
 
     public Node getNodeByName(String name) {
@@ -131,7 +157,6 @@ public class GraphTraversal {
 
         while(node_ite.hasNext()) {
             Node n = node_ite.next();
-            
             if(n.name.equals(name)) return n;
         }
 
@@ -154,13 +179,11 @@ public class GraphTraversal {
             path.addFirst(lastnode);
             lastnode = lastnode.parent;
         }
-        
+
         Iterator<Node> node_ite = path.iterator();
         while(node_ite.hasNext()) {
             Node temp = node_ite.next();
             System.out.print(temp.name + "->");
         }
-
-        System.out.println();
     }
 }
