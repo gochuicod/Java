@@ -1,10 +1,9 @@
-/**
- Pacman
-*/
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.JFrame;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
+import java.awt.Graphics;
+import java.awt.Canvas;
+import java.awt.Color;
 
 public class Pacman extends JFrame implements KeyListener{
     PacmanCanvas canvas;
