@@ -84,18 +84,15 @@ public class MainDriver {
         gt.connect("Apas", "Banilad");
         gt.connect("Banilad", "Kasambagan");
 
-
-
-        System.out.println("This is Breadth First Search");
-        gt.breadthFirstSearch("Labangon", "Magellan's cross");
+        System.out.println("BFS\n---");
+        gt.breadthFirstSearch("Labangon", "Ayala Center");
         System.out.println();
-        System.out.println("This is Depth First Search");
-        gt.depthFirstSearch("Labangon", "Magellan's cross");
+        System.out.println("DFS\n---");
+        gt.depthFirstSearch("Labangon", "Ayala Center");
         System.out.println();
-        System.out.println("This is Depth First Search Recursive");
-        gt.depthFirstSearchRecursive("Labangon", "Magellan's cross");
+        System.out.println("DFS Recursive\n-------------");
+        gt.depthFirstSearchRecursive("Labangon", "Ayala Center");
         System.out.println();
-        System.out.println("Adjacency List\n--------------");
         gt.displayAdjacencyList();
     }
 }
