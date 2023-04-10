@@ -1,6 +1,6 @@
 public class MainDriver {
     public static void main(String[] args) {
-        LinkedList ll = new LinkedList();
+        Linkedlist ll = new Linkedlist();
         ll.addFirst(50);
         ll.addFirst(22);
         ll.display();
