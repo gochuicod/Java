@@ -28,8 +28,8 @@
 // tag  Reason   Ver  Rev Date       Author      Description.
 //------------------------------------------------------------------------
 // $000 -------  0.1  001 2023-03-25 cabrillosa  First Release.
-package Graph;
 import java.util.*;
+
 public class GraphTraversal {
     //---------------------------------------------------------------------
     // Attribute Definition.

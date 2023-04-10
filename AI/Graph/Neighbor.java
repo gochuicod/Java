@@ -1,5 +1,3 @@
-package Graph;
-
 public class Neighbor {
     Node node;
     

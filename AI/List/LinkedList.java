@@ -1,6 +1,4 @@
-package List.SinglyLinkedList;
-
-public class SinglyLinkedList {
+public class LinkedList {
     private Node head;
     
     public void addFirst(int data){
