@@ -1,35 +1,38 @@
 public class MainDriver {
     public static void main(String[] args) {
-        LinkedList sll = new LinkedList();
-        sll.addFirst(2);
-        sll.display();
-        sll.addLast(77);
-        sll.display();
-        sll.addFirst(22);
-        sll.display();
-        sll.addLast(6);
-        sll.display();
-        sll.addLast(43);
-        sll.display();
-        sll.addLast(76);
-        sll.display();
-        sll.addLast(89);
-        sll.display();
-        
-        sll.deleteFirst();
-        sll.display();
-        sll.deleteItem(76);
-        sll.display();
-        sll.deleteLast();
-        sll.display();
-        sll.deleteFirst();
-        sll.display();
+        LinkedList ll = new LinkedList();
+        ll.addFirst(50);
+        ll.addFirst(22);
+        ll.display();
+        ll.addFirst(20);
+        ll.display();
+        ll.deleteFirst();
+        ll.deleteFirst();
+        ll.deleteFirst();
+        ll.deleteFirst();
+        ll.display();
+        // Node head = null;
+        // Node n1 = new Node(22);
+        // Node n2 = new Node(50);
+        // Node newnode = new Node(20);
+        // head = n1;
+        // n1.next = n2;
+        // n2.next = null;
 
-        sll.deleteItem(6);
-        sll.display();
-        sll.deleteItem(43);
-        sll.display();
-        sll.deleteItem(77);
-        sll.display();
+        // newnode.next = head;
+        // head = newnode;
+
+        // // h -> n1 ->n2 -> null
+        // Node temp = head;
+        // while(temp != null){
+        //     System.out.print(temp.data+"->");
+        //     temp = temp.next;
+        // }
+        // Node temp2 = head;
+        // System.out.println("displaying twice!");
+        // while(temp2 != null){
+        //     System.out.print(temp2.data+"->");
+        //     temp2 = temp2.next;
+        // }
     }
 }
