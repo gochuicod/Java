@@ -48,7 +48,7 @@ public class Linkedlist {
         }
     }
 
-    public void deleteItem(int data){
+    public int deleteItem(int data){
         Node current = this.head;
         Node previous = null;
 
@@ -60,7 +60,7 @@ public class Linkedlist {
                     if(current.data == data){
                         previous.next = current.next;
                         current = null;
-                        break;
+                        return 0;
                     }
                     
                     previous = current;
@@ -70,6 +70,7 @@ public class Linkedlist {
         } catch (NullPointerException e) {
             this.head = null;
         }
+        return -1;
     }
     
     public boolean exist(int data){
