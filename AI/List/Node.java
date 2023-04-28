@@ -1,9 +1,19 @@
+import java.util.LinkedList;
+
 public class Node {
-    public int data;
-    public Node next;
+    public String name;
+    public boolean isVisited;
+    public Node parent;
+    public LinkedList<Neighbor> neighbors;
     
-    public Node(int data){
-        this.data = data;
-        this.next = null;
+    public Node(String n) {
+        this.name = n;
+        this.isVisited = false;
+        neighbors = new LinkedList<Neighbor>();
+    }
+
+    public void addNeighbor(Node n) {
+        Neighbor neighbor = new Neighbor(n);
+        neighbors.add(neighbor);
     }
 }

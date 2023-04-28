@@ -1,93 +1,32 @@
-//------------------------------------------------------------------------
-// 2023 IT-ELAI Introduction to AI
-// Topic : Informed Search Algorithms
-//------------------------------------------------------------------------
-//
-// File Name    :   GraphTraversal.java
-// Class Name:  :   GraphTraversal 
-// Stereotype   :   
-//
-// GraphTraversal class:
-//  Methods:
-//      +addPlace                        - Add a place in string format.
-//      +connect                         - Connect one vertex to another vertex.
-//      +displayAdjacencyList            - Display adjacency list.
-//      +breadthFirstSearch              - Traverse the map using BFS
-//      +depththFirstSearch              - Traverse the map using DFS
-//  Utility:
-//      -getNodeByName                   - search the map using the string name
-//      -reconstruct_path                - reconstruct the solution/path
-//  Attributes:
-//      -graph(LinkedList<Node>)         - Number of places/vertices in the map.
-
-//------------------------------------------------------------------------
-// Notes:
-//   Comment character code - UTF-8.
-//------------------------------------------------------------------------
-//  Change Activities:
-// tag  Reason   Ver  Rev Date       Author      Description.
-//------------------------------------------------------------------------
-// $000 -------  0.1  001 2023-03-25 cabrillosa  First Release.
 import java.util.*;
 
 public class GraphTraversal {
-    //---------------------------------------------------------------------
-    // Attribute Definition.
-    //---------------------------------------------------------------------
     private LinkedList<Node> graph;
 
-    //------------------------------------------------------------------------
-    //  Method Name : GraphTraversal
-    //  Description : Constructor. Initialize the need attributes.
-    //  Arguments   : void.
-    //  Return      : void.
-    //------------------------------------------------------------------------
     public GraphTraversal() {
         graph = new LinkedList<Node>();
     }
 
-    //------------------------------------------------------------------------
-    //  Method Name : addPlace
-    //  Description : Adds a place in string format.
-    //  Arguments   : String place
-    //  Return      : void
-    //------------------------------------------------------------------------
     public void addPlace(String name) {
         Node newnode = new Node(name.toLowerCase());
         graph.add(newnode);
     }
     
-    //------------------------------------------------------------------------
-    //  Method Name : connect
-    //  Description : Connect one vertex to another vertex.
-    //  Arguments   : string v1
-    //                string v2
-    //                int dist
-    //  Return      : 0 (OK)
-    //               -1 (NG - place is not in the list)
-    //------------------------------------------------------------------------
-
-    public int connect(String place1, String place2) {
+    public int connect(String place1, String place2, double cost) {
         Node p1 = getNodeByName(place1.toLowerCase());
         Node p2 = getNodeByName(place2.toLowerCase());
 
         if(p1 == null || p2 == null) {
             System.out.println("Error: Could'nt find the places!");
             return -1;
-        } else { /* nothing todo */ }
+        }
 
-        p1.addNeighbor(p2);
-        p2.addNeighbor(p1);
+        p1.addNeighbor(p2,cost);
+        p2.addNeighbor(p1,cost);
 
         return 0;
     }
 
-    //------------------------------------------------------------------------
-    //  Method Name : displayAdjacencyList
-    //  Description : Display adjacency list.
-    //  Arguments   : None.
-    //  Return      : None.
-    //------------------------------------------------------------------------
     public void displayAdjacencyList() {
         for(Node node_ite : graph){
             System.out.print(node_ite.name+"::>");
@@ -98,13 +37,6 @@ public class GraphTraversal {
         }
     }
 
-    //------------------------------------------------------------------------
-    //  Method Name : breadthFirstSearch
-    //  Description : Traverse the map using BFS
-    //  Arguments   : String s
-    //                String g
-    //  Return      : Void
-    //------------------------------------------------------------------------
     public void breadthFirstSearch(String s, String g) {
         Queue<Node> queue = new LinkedList<Node>();
         Node start_node = getNodeByName(s.toLowerCase());
@@ -122,7 +54,6 @@ public class GraphTraversal {
 
             if(v.name.equals(g.toLowerCase())) {
                 reconstruct_path(v);
-                System.out.println("Found!");
                 unvisit();
                 return;
             }
@@ -141,13 +72,6 @@ public class GraphTraversal {
         System.out.println("No solution!");
     }
 
-    //------------------------------------------------------------------------
-    //  Method Name : depththFirstSearch
-    //  Description : Traverse the map using BFS
-    //  Arguments   : String s
-    //                String g
-    //  Return      : Void
-    //------------------------------------------------------------------------
     public void depthFirstSearch(String s, String g) {
         Stack<Node> stack = new Stack<Node>();
         Node start_node = getNodeByName(s.toLowerCase());
@@ -165,13 +89,12 @@ public class GraphTraversal {
 
             if(v.name.equals(g.toLowerCase())) {
                 reconstruct_path(v);
-                System.out.println("Found!");
                 unvisit();
                 return;
             }
             System.out.print(v.name + "->");
 
-            for(Neighbor neighbor : v.neighbors){
+            for(Neighbor neighbor : v.neighbors) {
                 if(!neighbor.node.isVisited){
                     stack.push(neighbor.node);
                     neighbor.node.parent = v;
@@ -191,7 +114,8 @@ public class GraphTraversal {
         Set<Node> visited = new HashSet<Node>();
         visited.add(start_node);
     
-        if(dfsRecursiveHelper(start_node, goal_node, visited) == false) System.out.println("No Solution!");
+        if(dfsRecursiveHelper(start_node, goal_node, visited) == false)
+            System.out.println("No Solution!");
     }
     
     private boolean dfsRecursiveHelper(Node start_node, Node goal_node, Set<Node> visited) {
@@ -199,6 +123,7 @@ public class GraphTraversal {
     
         if(start_node == goal_node){
             System.out.println("Found!");
+            reconstruct_path(start_node);
             return true;
         }
 
@@ -213,40 +138,113 @@ public class GraphTraversal {
         return false;
     }
 
-    //UTILITY FUNCTIONS
-
-    //------------------------------------------------------------------------
-    //  Method Name : getNodeByName
-    //  Description : get the node by its name
-    //  Arguments   : String name
-    //  Return      : Node, if name is found
-    //                null, if name is not found
-    //------------------------------------------------------------------------
-    public Node getNodeByName(String name) {
+    public void greedyBestFirstSearch(String start_place, String goal_place) {
+        Node start_node = getNodeByName(start_place.toLowerCase());
+        Node goal_node = getNodeByName(goal_place.toLowerCase());
         
+        PriorityQueue<Node> queue = new PriorityQueue<Node>(new Comparator<Node>(){
+            @Override
+            public int compare(Node node1, Node node2) {
+                if (node1.cost < node2.cost) return -1;
+                else if (node1.cost > node2.cost) return 1;
+                else return 0;
+            }
+        });
+        queue.add(start_node);
+        start_node.isVisited = true;
 
+        while(!queue.isEmpty()){
+            Node current = queue.poll();
+            System.out.print(current.name + "->");
+
+            if (current == goal_node) {
+                reconstruct_path(current);
+                unvisit();
+                return;
+            }
+
+            for (Neighbor neighbor : current.neighbors) {
+                Node neighborNode = neighbor.node;
+                if (!neighborNode.isVisited) {
+                    neighborNode.isVisited = true;
+                    neighborNode.parent = current;
+                    queue.add(neighborNode);
+                }
+            }
+        }
+
+        unvisit();
+        System.out.print("No Solution!");
+    }
+
+    public void aStarSearch(String start_place, String goal_place) {
+        Node start_node = getNodeByName(start_place.toLowerCase());
+        Node goal_node = getNodeByName(goal_place.toLowerCase());
+
+        PriorityQueue<Node> frontier = new PriorityQueue<>(new Comparator<Node>() {
+            @Override
+            public int compare(Node node1, Node node2) {
+                return Double.compare(node1.f, node2.f);
+            }
+        });
+        HashSet<Node> visited = new HashSet<>();
+    
+        start_node.g = 0;
+        start_node.f = start_node.h;
+    
+        frontier.add(start_node);
+    
+        while (!frontier.isEmpty()) {
+            Node current = frontier.poll();
+            System.out.print(current.name + "->");
+    
+            if (current == goal_node) {
+                reconstruct_path(current);
+                unvisit();
+                return;
+            }
+    
+            visited.add(current);
+    
+            for (Neighbor neighbor : current.neighbors) {
+                Node neighborNode = neighbor.node;
+    
+                if (!visited.contains(neighborNode)) {
+                    double newGCost = current.g + neighbor.cost;
+                    double newFCost = newGCost + neighborNode.h;
+    
+                    if (frontier.contains(neighborNode) && newFCost >= neighborNode.f) {
+                        continue;
+                    }
+    
+                    neighborNode.g = newGCost;
+                    neighborNode.f = newFCost;
+                    neighborNode.parent = current;
+    
+                    if (!frontier.contains(neighborNode)) {
+                        frontier.add(neighborNode);
+                    }
+                }
+            }
+        }
+
+        unvisit();
+        System.out.println("No Solution!");
+    }
+
+    public Node getNodeByName(String name) {
         Iterator<Node> node_ite = graph.iterator();
 
-        while(node_ite.hasNext()) { // while(temp != null)
-            Node n = node_ite.next(); // temp = temp.next
+        while(node_ite.hasNext()) {
+            Node n = node_ite.next();
             
-            //found
-            if(n.name.equals(name)) {
-                return n;
-            }
+            if(n.name.equals(name)) return n;
         }
 
         return null;
     }
 
-    //------------------------------------------------------------------------
-    //  Method Name : unvisit
-    //  Description : reconstruct the path from goal to start
-    //  Arguments   : void
-    //  Return      : Node, if name is found
-    //                null, if name is not found
-    //------------------------------------------------------------------------
-    private void unvisit(){
+    private void unvisit() {
         Iterator<Node> node_ite = graph.iterator();
 
         while(node_ite.hasNext()) {
@@ -255,20 +253,20 @@ public class GraphTraversal {
         }
     }
 
-    //------------------------------------------------------------------------
-    //  Method Name : reconstruct_path
-    //  Description : reconstruct the path from goal to start
-    //  Arguments   : String lastnode
-    //  Return      : Node, if name is found
-    //                null, if name is not found
-    //------------------------------------------------------------------------
-    private void reconstruct_path(Node lastnode)
-    {
-        System.out.println("Reconstructing path.");
+    private void reconstruct_path(Node lastnode) {
+        System.out.println("Reconstructing path...");
         LinkedList<Node> path = new LinkedList<Node>();
+        double totalCost = 0.0;
         while(lastnode != null) {
+            if(lastnode.parent != null) {
+                for(Neighbor neighbor : lastnode.parent.neighbors) {
+                    if(neighbor.node.equals(lastnode)) {
+                        totalCost += neighbor.cost;
+                    }
+                }
+            }
             path.addFirst(lastnode);
-            lastnode = lastnode.parent; // move backward
+            lastnode = lastnode.parent;
         }
         
         Iterator<Node> node_ite = path.iterator();
@@ -276,5 +274,7 @@ public class GraphTraversal {
             Node temp = node_ite.next();
             System.out.print(temp.name + "->");
         }
+        System.out.println("Found!");
+        System.out.printf("Distance covered: %.2f km\n", totalCost);
     }
 }

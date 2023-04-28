@@ -1,7 +1,9 @@
 public class Neighbor {
     Node node;
-    
-    public Neighbor(Node n) {
+    double cost;
+
+    public Neighbor(Node n, double cost) {
         this.node = n;
+        this.cost = cost;
     }
 }
