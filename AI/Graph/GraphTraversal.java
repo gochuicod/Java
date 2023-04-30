@@ -13,13 +13,18 @@
 //      +connect                         - Connect one vertex to another vertex.
 //      +displayAdjacencyList            - Display adjacency list.
 //      +breadthFirstSearch              - Traverse the map using BFS
-//      +depththFirstSearch              - Traverse the map using DFS
+//      +depthFirstSearch                - Traverse the map using DFS
+//      +depthFirstSearchRecursive       - Traverse the map using DFS Recursive
+//      +dfsRecursiveHelper              - Aids DFSR in traversing
 //      +greedyBestFirstSearch           - Traverse the map using greedy best first search alg
 //      +aStar                           - Traverse the map using A-star search alg
 //  Utility:
 //      -getNodeByName                   - search the map using the string name
+//      -unvisit                         - unvisits all nodes
 //      -reconstruct_path                - reconstruct the solution/path
 //      -getLowestFScore                 - get the lowest fscore in a given list of nodes
+//      -calculateEuclidianDistance      - get the distance between two points (lat,lon)
+//      -toRad                           - converts a value to radian
 //  Attributes:
 //      -graph(LinkedList<Node>)         - Number of places/vertices in the map.
 
@@ -27,7 +32,7 @@
 // Notes:
 //   Comment character code - UTF-8.
 //------------------------------------------------------------------------
-//  Change Activities:
+// Change Activities:
 // tag  Reason   Ver  Rev Date       Author      Description.
 //------------------------------------------------------------------------
 // $000 -------  0.1  001 2023-03-25 cabrillosa  First Release.
@@ -54,17 +59,15 @@ class GraphTraversal {
 
     //------------------------------------------------------------------------
     //  Method Name : addPlace
-    //  Description : Adds a place in string and float format.
+    //  Description : Adds a place in string and double format.
     //  Arguments   : String place
-    //                float lat
-    //                float lon
+    //                double lat
+    //                double lon
     //  Return      : void
     //------------------------------------------------------------------------
-    public void addPlace(String name, float lat, float lon) {
+    public void addPlace(String name, double lat, double lon) {
         Node newnode = new Node(name.toLowerCase());
-
         newnode.setCoordinates(lat,lon);
-
         graph.add(newnode);
     }
     
@@ -73,7 +76,7 @@ class GraphTraversal {
     //  Description : Connect one vertex to another vertex.
     //  Arguments   : string v1
     //                string v2
-    //                float h
+    //                double h
     //  Return      : 0 (OK)
     //               -1 (NG - place is not in the list)
     //------------------------------------------------------------------------
@@ -86,7 +89,7 @@ class GraphTraversal {
             return -1;
         }
         
-        float h = calculateEuclidianDistance(
+        double h = calculateEuclidianDistance(
             p1.getLatitude(),
             p1.getLongitude(),
             p2.getLatitude(),
@@ -120,12 +123,13 @@ class GraphTraversal {
     //  Description : Traverse the map using BFS
     //  Arguments   : String s
     //                String g
-    //  Return      : Void
+    //  Return      : void
     //------------------------------------------------------------------------
     public void breadthFirstSearch(String s, String g) {
         Queue<Node> q = new LinkedList<Node>();
         Node start_node = getNodeByName(s.toLowerCase());
-        if(start_node == null) {
+
+        if(start_node.equals(null)) {
             System.out.println("Error: unable to find the string place!");
             return;
         }
@@ -154,8 +158,8 @@ class GraphTraversal {
                 }
             }
         }
+
         unvisit();
-        System.out.println();
         System.out.println("No solution!");
     }
 
@@ -164,11 +168,12 @@ class GraphTraversal {
     //  Description : Traverse the map using DFS
     //  Arguments   : String s
     //                String g
-    //  Return      : Void
+    //  Return      : void
     //------------------------------------------------------------------------
     public void depthFirstSearch(String s, String g) {
         Stack<Node> st = new Stack<Node>();
         Node start_node = getNodeByName(s.toLowerCase());
+
         if(start_node.equals(null)) {
             System.out.println("Error: unable to find the string place!");
             return;
@@ -199,7 +204,6 @@ class GraphTraversal {
         }
 
         unvisit();
-        System.out.println();
         System.out.println("No solution!");
     }
 
@@ -208,33 +212,47 @@ class GraphTraversal {
     //  Description : Traverse the map using dfs recursive
     //  Arguments   : String s
     //                String g
-    //  Return      : Void
+    //  Return      : void
     //------------------------------------------------------------------------
     public void depthFirstSearchRecursive(String s, String g) {
         Node start_node = getNodeByName(s.toLowerCase());
-        start_node.isVisited = true;
+        Node goal_node = getNodeByName(g.toLowerCase());
     
+        Set<Node> visited = new HashSet<Node>();
+        visited.add(start_node);
+
+        if(dfsRecursiveHelper(start_node, goal_node, visited) == false) {
+            System.out.println("No Solution!");
+            unvisit();
+        }
+    }
+
+    //------------------------------------------------------------------------
+    //  Method Name : dfsRecursiveHelper
+    //  Description : Traverse the map using dfs recursive
+    //  Arguments   : String s
+    //                String g
+    //                Set<Node> visited
+    //  Return      : boolean
+    //------------------------------------------------------------------------
+    private boolean dfsRecursiveHelper(Node start_node, Node goal_node, Set<Node> visited) {
         System.out.print(start_node.getName() + "->");
-        
-        if(start_node.getName().equals(g)) {
+
+        if(start_node.equals(goal_node)){
             System.out.println("Found!");
             unvisit();
-            return;
+            return true;
         }
 
-        for(Neighbor neighbor : start_node.neighbors) {
-            Node neighborNode = neighbor.getNode();
-            if(!neighborNode.isVisited) {
-                neighborNode.setParent(start_node);
-                depthFirstSearchRecursive(neighborNode.getName(), g);
-                return;
+        for(Neighbor neighbor : start_node.neighbors){
+            if(!visited.contains(neighbor.node)){
+                visited.add(neighbor.node);
+                if(dfsRecursiveHelper(neighbor.node, goal_node, visited))
+                    return true;
             }
         }
 
-        unvisit();
-        System.out.println();
-        System.out.println("No solution!");
-        return;
+        return false;
     }
 
     //------------------------------------------------------------------------
@@ -245,37 +263,20 @@ class GraphTraversal {
     //  Return      : Void
     //------------------------------------------------------------------------
     public void greedyBestFirstSearch(String start_place, String goal_place) {
-        Node start = getNodeByName(start_place);
-        Node goal = getNodeByName(goal_place);
+        Node start = getNodeByName(start_place.toLowerCase());
+        Node goal = getNodeByName(goal_place.toLowerCase());
         PriorityQueue<Node> pq = new PriorityQueue<Node>();
 
         if (start.equals(null)) {
             System.out.println("Enter a valid start node!");
         }
 
-        start.setHScore(
-            calculateEuclidianDistance(
-                start.getLatitude(),
-                start.getLongitude(),
-                goal.getLatitude(),
-                goal.getLongitude()
-            )
-        );
-        start.setFScore(start.getHScore());
-        start.isVisited = true;
         pq.add(start);
-
+        
         while(pq.size() > 0) {
             Node current = pq.poll();
             current.isVisited = true;
-            current.setHScore(
-                calculateEuclidianDistance(
-                    current.getLatitude(),
-                    current.getLongitude(),
-                    goal.getLatitude(),
-                    goal.getLongitude()
-                )
-            );
+
             System.out.print(current.getName() + "->");
 
             if(current.getName().equals(goal_place.toLowerCase())) {
@@ -287,13 +288,21 @@ class GraphTraversal {
             for(Neighbor neighbor : current.neighbors){
                 Node neighborNode = neighbor.node;
                 if(neighborNode.isVisited != true) {
+                    neighborNode.setHScore(
+                        calculateEuclidianDistance(
+                            neighborNode.getLatitude(),
+                            neighborNode.getLongitude(),
+                            goal.getLatitude(),
+                            goal.getLongitude()
+                        )
+                    );
                     neighborNode.setParent(current);
                     neighborNode.setFScore(neighborNode.getHScore());
                     pq.add(neighborNode);
                 }
             }
         }
-        
+
         unvisit();
         System.out.println("No solution!");
     }
@@ -306,33 +315,18 @@ class GraphTraversal {
     //  Return      : Void
     //------------------------------------------------------------------------
     public void aStar(String start_place, String goal_place) {
-        Node start = getNodeByName(start_place);
-        Node goal = getNodeByName(goal_place);
+        Node start = getNodeByName(start_place.toLowerCase());
+        Node goal = getNodeByName(goal_place.toLowerCase());
 
         LinkedList<Node> openlist = new LinkedList<Node>();
         LinkedList<Node> closedlist = new LinkedList<Node>();
 
-        start.setHScore(
-            calculateEuclidianDistance(
-                start.getLatitude(),
-                start.getLongitude(),
-                goal.getLatitude(),
-                goal.getLongitude()
-            )
-        );
         start.setFScore(start.getGScore() + start.getHScore());
         openlist.add(start);
 
         while(openlist.size() > 0) {
             Node current = getLowestFScore(openlist);
-            start.setHScore(
-                calculateEuclidianDistance(
-                    current.getLatitude(),
-                    current.getLongitude(),
-                    goal.getLatitude(),
-                    goal.getLongitude()
-                )
-            );
+
             System.out.print(current.getName() + "->");
 
             if(current.getName().equals(goal_place.toLowerCase())) {
@@ -342,32 +336,38 @@ class GraphTraversal {
                 return;
             }
 
-            Iterator<Neighbor> neighbor_ite = current.neighbors.iterator();
-
-            while(neighbor_ite.hasNext()) {
-                Neighbor m = neighbor_ite.next();
-                float gtotal = current.getGScore() + m.distance;
-
-                if(!closedlist.contains(m.node) && !openlist.contains(m.node)) {
-                    m.node.setParent(current);
-                    m.node.setGScore(gtotal);
-                    m.node.setFScore(m.node.getGScore() + m.node.getHScore());
-                    openlist.add(m.node);
+            for(Neighbor neighbor : current.neighbors) {
+                double gtotal = current.getGScore() + neighbor.distance;
+                if(!closedlist.contains(neighbor.node) && !openlist.contains(neighbor.node)) {
+                    neighbor.node.setHScore(
+                        calculateEuclidianDistance(
+                            neighbor.node.getLatitude(),
+                            neighbor.node.getLongitude(),
+                            goal.getLatitude(),
+                            goal.getLongitude()
+                        )
+                    );
+                    neighbor.node.setParent(current);
+                    neighbor.node.setGScore(gtotal);
+                    neighbor.node.setFScore(neighbor.node.getGScore() + neighbor.node.getHScore());
+                    openlist.add(neighbor.node);
                 } else {
-                    if(gtotal < m.node.getGScore()) {
-                        m.node.setParent(current);
-                        m.node.setGScore(gtotal);
-                        m.node.setFScore(m.node.getGScore() + m.node.getHScore());
+                    if(gtotal < neighbor.node.getGScore()) {
+                        neighbor.node.setParent(current);
+                        neighbor.node.setGScore(gtotal);
+                        neighbor.node.setFScore(neighbor.node.getGScore() + neighbor.node.getHScore());
 
-                        if (closedlist.contains(m.node)){
-                            openlist.add(m.node);
+                        if (closedlist.contains(neighbor.node)){
+                            openlist.add(neighbor.node);
                         }
                     }
                 }
             }
+
             openlist.remove(current);
             closedlist.add(current);
         }
+
         System.out.println("No path to goal!");
     }
 
@@ -382,14 +382,9 @@ class GraphTraversal {
     //                null, if name is not found
     //------------------------------------------------------------------------
     public Node getNodeByName(String name) {
-        Iterator<Node> node_ite = graph.iterator();
-
-        while(node_ite.hasNext()) { // while(temp != null)
-            Node n = node_ite.next(); // temp = temp.next
-            
-            //found
-            if(n.getName().equals(name)) {
-                return n;
+        for(Node i : graph) {
+            if(i.getName().equals(name)) {
+                return i;
             }
         }
 
@@ -404,11 +399,8 @@ class GraphTraversal {
     //                null, if name is not found
     //------------------------------------------------------------------------
     private void unvisit() {
-        Iterator<Node> node_ite = graph.iterator();
-
-        while(node_ite.hasNext()) {
-            Node n = node_ite.next();
-            n.isVisited = false;
+        for(Node i : graph) {
+            i.isVisited = false;
         }
     }
 
@@ -422,17 +414,16 @@ class GraphTraversal {
     private void reconstruct_path(Node lastnode) {
         System.out.println("Reconstructing path...");
         LinkedList<Node> path = new LinkedList<Node>();
+
         while(lastnode != null) {
             path.addFirst(lastnode);
             lastnode = lastnode.getParent(); // move backward
         }
         
-        Iterator<Node> node_ite = path.iterator();
-        while(node_ite.hasNext()) {
-            Node temp = node_ite.next();
-            System.out.print(temp.getName() + "->");
+        for(Node i : path) {
+            System.out.print(i.getName() + "->");
         }
-
+        
         System.out.print("Found!");
         System.out.println();
     }
@@ -461,17 +452,17 @@ class GraphTraversal {
     //                String lon1
     //                String lat2
     //                String lon2
-    //  Return      : float, after calculating the distance
+    //  Return      : double, after calculating the distance
     //------------------------------------------------------------------------
-    public float calculateEuclidianDistance(float lat1, float lon1, float lat2, float lon2) {
-        float R = (float) 6371;
-        float dLat = toRad(lat2-lat1);
-        float dLon = toRad(lon2-lon1);
+    public double calculateEuclidianDistance(double lat1, double lon1, double lat2, double lon2) {
+        double R = 6371;
+        double dLat = toRad(lat2-lat1);
+        double dLon = toRad(lon2-lon1);
 
-        float a = (float) (Math.sin(dLat/2) * Math.sin(dLat/2) +
+        double a = (Math.sin(dLat/2) * Math.sin(dLat/2) +
         Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(toRad(lat1)) * Math.cos(toRad(lat2))); 
-        float c = (float) (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))); 
-        float d = R * c;
+        double c = (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))); 
+        double d = R * c;
 
         return d;
     }
@@ -479,10 +470,10 @@ class GraphTraversal {
     //------------------------------------------------------------------------
     //  Method Name : calculateEuclidianDistance
     //  Description : Converts a given value to radian
-    //  Arguments   : float value
-    //  Return      : float, after radian conversion
+    //  Arguments   : double value
+    //  Return      : double, after radian conversion
     //------------------------------------------------------------------------
-    public float toRad(float value) {
-        return (float) (value * Math.PI / 180.0);
+    public double toRad(double value) {
+        return (value * Math.PI / 180.0);
     }
 }
