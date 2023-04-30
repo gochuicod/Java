@@ -1,18 +1,83 @@
-import java.util.*;
+//------------------------------------------------------------------------
+// 2023 IT-ELAI Introduction to AI
+// Topic : Informed Search Algorithms
+//------------------------------------------------------------------------
+//
+// File Name    :   GraphTraversal.java
+// Class Name:  :   GraphTraversal 
+// Stereotype   :   
+//
+// GraphTraversal class:
+//  Methods:
+//      +addPlace                        - Add a place in string format.
+//      +connect                         - Connect one vertex to another vertex.
+//      +displayAdjacencyList            - Display adjacency list.
+//      +breadthFirstSearch              - Traverse the map using BFS
+//      +depththFirstSearch              - Traverse the map using DFS
+//      +greedyBestFirstSearch           - Traverse the map using greedy best first search alg
+//      +aStar                           - Traverse the map using A-star search alg
+//  Utility:
+//      -getNodeByName                   - search the map using the string name
+//      -reconstruct_path                - reconstruct the solution/path
+//      -getLowestFScore                 - get the lowest fscore in a given list of nodes
+//  Attributes:
+//      -graph(LinkedList<Node>)         - Number of places/vertices in the map.
 
-public class GraphTraversal {
+//------------------------------------------------------------------------
+// Notes:
+//   Comment character code - UTF-8.
+//------------------------------------------------------------------------
+//  Change Activities:
+// tag  Reason   Ver  Rev Date       Author      Description.
+//------------------------------------------------------------------------
+// $000 -------  0.1  001 2023-03-25 cabrillosa  First Release.
+// $001 -------  0.5  002 2023-04-29 cabrillosa  Added Greedy BFS and A*
+
+import java.util.*;
+import java.lang.Math;
+
+class GraphTraversal {
+    //---------------------------------------------------------------------
+    // Attribute Definition.
+    //---------------------------------------------------------------------
     private LinkedList<Node> graph;
 
+    //------------------------------------------------------------------------
+    //  Method Name : GraphTraversal
+    //  Description : Constructor. Initialize the need attributes.
+    //  Arguments   : void.
+    //  Return      : void.
+    //------------------------------------------------------------------------
     public GraphTraversal() {
         graph = new LinkedList<Node>();
     }
 
-    public void addPlace(String name) {
+    //------------------------------------------------------------------------
+    //  Method Name : addPlace
+    //  Description : Adds a place in string and float format.
+    //  Arguments   : String place
+    //                float lat
+    //                float lon
+    //  Return      : void
+    //------------------------------------------------------------------------
+    public void addPlace(String name, float lat, float lon) {
         Node newnode = new Node(name.toLowerCase());
+
+        newnode.setCoordinates(lat,lon);
+
         graph.add(newnode);
     }
     
-    public int connect(String place1, String place2, double cost) {
+    //------------------------------------------------------------------------
+    //  Method Name : connect
+    //  Description : Connect one vertex to another vertex.
+    //  Arguments   : string v1
+    //                string v2
+    //                float h
+    //  Return      : 0 (OK)
+    //               -1 (NG - place is not in the list)
+    //------------------------------------------------------------------------
+    public int connect(String place1, String place2) {
         Node p1 = getNodeByName(place1.toLowerCase());
         Node p2 = getNodeByName(place2.toLowerCase());
 
@@ -20,230 +85,324 @@ public class GraphTraversal {
             System.out.println("Error: Could'nt find the places!");
             return -1;
         }
+        
+        float h = calculateEuclidianDistance(
+            p1.getLatitude(),
+            p1.getLongitude(),
+            p2.getLatitude(),
+            p2.getLongitude()
+        );
 
-        p1.addNeighbor(p2,cost);
-        p2.addNeighbor(p1,cost);
+        p1.addNeighbor(p2, h);
+        p2.addNeighbor(p1, h);
 
         return 0;
     }
 
+    //------------------------------------------------------------------------
+    //  Method Name : displayAdjacencyList
+    //  Description : Display adjacency list.
+    //  Arguments   : None.
+    //  Return      : None.
+    //------------------------------------------------------------------------
     public void displayAdjacencyList() {
-        for(Node node_ite : graph){
-            System.out.print(node_ite.name+"::>");
-            for(Neighbor neighbor : node_ite.neighbors){
-                System.out.print(neighbor.node.name+"->");
+        for(Node i : graph) {
+            System.out.print(i.getName() + "::> ");
+            for(Neighbor neighbor : i.neighbors) {
+                System.out.print(neighbor.node.getName() + "->");
             }
             System.out.println();
         }
     }
 
+    //------------------------------------------------------------------------
+    //  Method Name : breadthFirstSearch
+    //  Description : Traverse the map using BFS
+    //  Arguments   : String s
+    //                String g
+    //  Return      : Void
+    //------------------------------------------------------------------------
     public void breadthFirstSearch(String s, String g) {
-        Queue<Node> queue = new LinkedList<Node>();
+        Queue<Node> q = new LinkedList<Node>();
         Node start_node = getNodeByName(s.toLowerCase());
         if(start_node == null) {
             System.out.println("Error: unable to find the string place!");
             return;
         }
 
-        queue.add(start_node);
+        q.add(start_node);
         
         start_node.isVisited = true;
         
-        while(!queue.isEmpty()) {
-            Node v = queue.remove();
+        while(q.size() > 0) {
+            Node current = q.remove();
 
-            if(v.name.equals(g.toLowerCase())) {
-                reconstruct_path(v);
+            if(current.getName().equals(g.toLowerCase())) {
+                reconstruct_path(current);
                 unvisit();
                 return;
             }
 
-            System.out.print(v.name + "->");
-
-            for(Neighbor neighbor : v.neighbors){
-                if(!neighbor.node.isVisited){
-                    queue.add(neighbor.node);
-                    neighbor.node.parent = v;
-                    neighbor.node.isVisited = true;
+            System.out.print(current.getName() + "->");
+            
+            for(Neighbor neighbor : current.neighbors) {
+                Node neighborNode = neighbor.node;
+                if(neighborNode.isVisited != true) {
+                    q.add(neighborNode);
+                    neighborNode.setParent(current);
+                    neighborNode.isVisited = true;
                 }
             }
         }
         unvisit();
+        System.out.println();
         System.out.println("No solution!");
     }
 
+    //------------------------------------------------------------------------
+    //  Method Name : depthFirstSearch
+    //  Description : Traverse the map using DFS
+    //  Arguments   : String s
+    //                String g
+    //  Return      : Void
+    //------------------------------------------------------------------------
     public void depthFirstSearch(String s, String g) {
-        Stack<Node> stack = new Stack<Node>();
+        Stack<Node> st = new Stack<Node>();
         Node start_node = getNodeByName(s.toLowerCase());
-        if(start_node == null) {
+        if(start_node.equals(null)) {
             System.out.println("Error: unable to find the string place!");
             return;
         }
 
-        stack.push(start_node);
+        st.push(start_node);
         
         start_node.isVisited = true;
         
-        while(!stack.isEmpty()) {
-            Node v = stack.pop();
+        while(st.size() > 0) {
+            Node current = st.pop();
+            System.out.print(current.getName() + "->");
 
-            if(v.name.equals(g.toLowerCase())) {
-                reconstruct_path(v);
+            if(current.getName().equals(g.toLowerCase())) {
+                reconstruct_path(current);
                 unvisit();
                 return;
             }
-            System.out.print(v.name + "->");
 
-            for(Neighbor neighbor : v.neighbors) {
-                if(!neighbor.node.isVisited){
-                    stack.push(neighbor.node);
-                    neighbor.node.parent = v;
-                    neighbor.node.isVisited = true;
+            for(Neighbor neighbor : current.neighbors) {
+                Node neighborNode = neighbor.getNode();
+                if(neighborNode.isVisited != true) {
+                    st.push(neighborNode);
+                    neighborNode.setParent(current);
+                    neighborNode.isVisited = true;
                 }
             }
         }
-        unvisit();
-        System.out.println("No solution!");
 
+        unvisit();
+        System.out.println();
+        System.out.println("No solution!");
     }
 
+    //------------------------------------------------------------------------
+    //  Method Name : depthFirstSearchRecursive
+    //  Description : Traverse the map using dfs recursive
+    //  Arguments   : String s
+    //                String g
+    //  Return      : Void
+    //------------------------------------------------------------------------
     public void depthFirstSearchRecursive(String s, String g) {
         Node start_node = getNodeByName(s.toLowerCase());
-        Node goal_node = getNodeByName(g.toLowerCase());
-    
-        Set<Node> visited = new HashSet<Node>();
-        visited.add(start_node);
-    
-        if(dfsRecursiveHelper(start_node, goal_node, visited) == false)
-            System.out.println("No Solution!");
-    }
-    
-    private boolean dfsRecursiveHelper(Node start_node, Node goal_node, Set<Node> visited) {
-        System.out.print(start_node.name+"->");
-    
-        if(start_node == goal_node){
-            System.out.println("Found!");
-            reconstruct_path(start_node);
-            return true;
-        }
-
-        for(Neighbor neighbor_ite : start_node.neighbors){
-            if(!visited.contains(neighbor_ite.node)){
-                visited.add(neighbor_ite.node);
-                if(dfsRecursiveHelper(neighbor_ite.node, goal_node, visited))
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
-    public void greedyBestFirstSearch(String start_place, String goal_place) {
-        Node start_node = getNodeByName(start_place.toLowerCase());
-        Node goal_node = getNodeByName(goal_place.toLowerCase());
-        
-        PriorityQueue<Node> queue = new PriorityQueue<Node>(new Comparator<Node>(){
-            @Override
-            public int compare(Node node1, Node node2) {
-                if (node1.cost < node2.cost) return -1;
-                else if (node1.cost > node2.cost) return 1;
-                else return 0;
-            }
-        });
-        queue.add(start_node);
         start_node.isVisited = true;
+    
+        System.out.print(start_node.getName() + "->");
+        
+        if(start_node.getName().equals(g)) {
+            System.out.println("Found!");
+            unvisit();
+            return;
+        }
 
-        while(!queue.isEmpty()){
-            Node current = queue.poll();
-            System.out.print(current.name + "->");
+        for(Neighbor neighbor : start_node.neighbors) {
+            Node neighborNode = neighbor.getNode();
+            if(!neighborNode.isVisited) {
+                neighborNode.setParent(start_node);
+                depthFirstSearchRecursive(neighborNode.getName(), g);
+                return;
+            }
+        }
 
-            if (current == goal_node) {
+        unvisit();
+        System.out.println();
+        System.out.println("No solution!");
+        return;
+    }
+
+    //------------------------------------------------------------------------
+    //  Method Name : greedyBestFirstSearch
+    //  Description : Traverse the map using GBFS
+    //  Arguments   : String s
+    //                String g
+    //  Return      : Void
+    //------------------------------------------------------------------------
+    public void greedyBestFirstSearch(String start_place, String goal_place) {
+        Node start = getNodeByName(start_place);
+        Node goal = getNodeByName(goal_place);
+        PriorityQueue<Node> pq = new PriorityQueue<Node>();
+
+        if (start.equals(null)) {
+            System.out.println("Enter a valid start node!");
+        }
+
+        start.setHScore(
+            calculateEuclidianDistance(
+                start.getLatitude(),
+                start.getLongitude(),
+                goal.getLatitude(),
+                goal.getLongitude()
+            )
+        );
+        start.setFScore(start.getHScore());
+        start.isVisited = true;
+        pq.add(start);
+
+        while(pq.size() > 0) {
+            Node current = pq.poll();
+            current.isVisited = true;
+            current.setHScore(
+                calculateEuclidianDistance(
+                    current.getLatitude(),
+                    current.getLongitude(),
+                    goal.getLatitude(),
+                    goal.getLongitude()
+                )
+            );
+            System.out.print(current.getName() + "->");
+
+            if(current.getName().equals(goal_place.toLowerCase())) {
                 reconstruct_path(current);
                 unvisit();
                 return;
             }
 
-            for (Neighbor neighbor : current.neighbors) {
+            for(Neighbor neighbor : current.neighbors){
                 Node neighborNode = neighbor.node;
-                if (!neighborNode.isVisited) {
-                    neighborNode.isVisited = true;
-                    neighborNode.parent = current;
-                    queue.add(neighborNode);
+                if(neighborNode.isVisited != true) {
+                    neighborNode.setParent(current);
+                    neighborNode.setFScore(neighborNode.getHScore());
+                    pq.add(neighborNode);
                 }
             }
         }
-
+        
         unvisit();
-        System.out.print("No Solution!");
+        System.out.println("No solution!");
     }
 
-    public void aStarSearch(String start_place, String goal_place) {
-        Node start_node = getNodeByName(start_place.toLowerCase());
-        Node goal_node = getNodeByName(goal_place.toLowerCase());
+    //------------------------------------------------------------------------
+    //  Method Name : aStar
+    //  Description : Traverse the map using aStar
+    //  Arguments   : String s
+    //                String g
+    //  Return      : Void
+    //------------------------------------------------------------------------
+    public void aStar(String start_place, String goal_place) {
+        Node start = getNodeByName(start_place);
+        Node goal = getNodeByName(goal_place);
 
-        PriorityQueue<Node> frontier = new PriorityQueue<>(new Comparator<Node>() {
-            @Override
-            public int compare(Node node1, Node node2) {
-                return Double.compare(node1.f, node2.f);
-            }
-        });
-        HashSet<Node> visited = new HashSet<>();
-    
-        start_node.g = 0;
-        start_node.f = start_node.h;
-    
-        frontier.add(start_node);
-    
-        while (!frontier.isEmpty()) {
-            Node current = frontier.poll();
-            System.out.print(current.name + "->");
-    
-            if (current == goal_node) {
+        LinkedList<Node> openlist = new LinkedList<Node>();
+        LinkedList<Node> closedlist = new LinkedList<Node>();
+
+        start.setHScore(
+            calculateEuclidianDistance(
+                start.getLatitude(),
+                start.getLongitude(),
+                goal.getLatitude(),
+                goal.getLongitude()
+            )
+        );
+        start.setFScore(start.getGScore() + start.getHScore());
+        openlist.add(start);
+
+        while(openlist.size() > 0) {
+            Node current = getLowestFScore(openlist);
+            start.setHScore(
+                calculateEuclidianDistance(
+                    current.getLatitude(),
+                    current.getLongitude(),
+                    goal.getLatitude(),
+                    goal.getLongitude()
+                )
+            );
+            System.out.print(current.getName() + "->");
+
+            if(current.getName().equals(goal_place.toLowerCase())) {
+                //solution found
                 reconstruct_path(current);
-                unvisit();
+                System.out.println("Final fscore = " + current.getFScore());
                 return;
             }
-    
-            visited.add(current);
-    
-            for (Neighbor neighbor : current.neighbors) {
-                Node neighborNode = neighbor.node;
-    
-                if (!visited.contains(neighborNode)) {
-                    double newGCost = current.g + neighbor.cost;
-                    double newFCost = newGCost + neighborNode.h;
-    
-                    if (frontier.contains(neighborNode) && newFCost >= neighborNode.f) {
-                        continue;
-                    }
-    
-                    neighborNode.g = newGCost;
-                    neighborNode.f = newFCost;
-                    neighborNode.parent = current;
-    
-                    if (!frontier.contains(neighborNode)) {
-                        frontier.add(neighborNode);
+
+            Iterator<Neighbor> neighbor_ite = current.neighbors.iterator();
+
+            while(neighbor_ite.hasNext()) {
+                Neighbor m = neighbor_ite.next();
+                float gtotal = current.getGScore() + m.distance;
+
+                if(!closedlist.contains(m.node) && !openlist.contains(m.node)) {
+                    m.node.setParent(current);
+                    m.node.setGScore(gtotal);
+                    m.node.setFScore(m.node.getGScore() + m.node.getHScore());
+                    openlist.add(m.node);
+                } else {
+                    if(gtotal < m.node.getGScore()) {
+                        m.node.setParent(current);
+                        m.node.setGScore(gtotal);
+                        m.node.setFScore(m.node.getGScore() + m.node.getHScore());
+
+                        if (closedlist.contains(m.node)){
+                            openlist.add(m.node);
+                        }
                     }
                 }
             }
+            openlist.remove(current);
+            closedlist.add(current);
         }
-
-        unvisit();
-        System.out.println("No Solution!");
+        System.out.println("No path to goal!");
     }
 
+    
+    //UTILITY FUNCTIONS
+
+    //------------------------------------------------------------------------
+    //  Method Name : getNodeByName
+    //  Description : get the node by its name
+    //  Arguments   : String name
+    //  Return      : Node, if name is found
+    //                null, if name is not found
+    //------------------------------------------------------------------------
     public Node getNodeByName(String name) {
         Iterator<Node> node_ite = graph.iterator();
 
-        while(node_ite.hasNext()) {
-            Node n = node_ite.next();
+        while(node_ite.hasNext()) { // while(temp != null)
+            Node n = node_ite.next(); // temp = temp.next
             
-            if(n.name.equals(name)) return n;
+            //found
+            if(n.getName().equals(name)) {
+                return n;
+            }
         }
 
         return null;
     }
 
+    //------------------------------------------------------------------------
+    //  Method Name : unvisit
+    //  Description : reconstruct the path from goal to start
+    //  Arguments   : void
+    //  Return      : Node, if name is found
+    //                null, if name is not found
+    //------------------------------------------------------------------------
     private void unvisit() {
         Iterator<Node> node_ite = graph.iterator();
 
@@ -253,28 +412,77 @@ public class GraphTraversal {
         }
     }
 
+    //------------------------------------------------------------------------
+    //  Method Name : reconstruct_path
+    //  Description : reconstruct the path from goal to start
+    //  Arguments   : String lastnode
+    //  Return      : Node, if name is found
+    //                null, if name is not found
+    //------------------------------------------------------------------------
     private void reconstruct_path(Node lastnode) {
         System.out.println("Reconstructing path...");
         LinkedList<Node> path = new LinkedList<Node>();
-        double totalCost = 0.0;
         while(lastnode != null) {
-            if(lastnode.parent != null) {
-                for(Neighbor neighbor : lastnode.parent.neighbors) {
-                    if(neighbor.node.equals(lastnode)) {
-                        totalCost += neighbor.cost;
-                    }
-                }
-            }
             path.addFirst(lastnode);
-            lastnode = lastnode.parent;
+            lastnode = lastnode.getParent(); // move backward
         }
         
         Iterator<Node> node_ite = path.iterator();
         while(node_ite.hasNext()) {
             Node temp = node_ite.next();
-            System.out.print(temp.name + "->");
+            System.out.print(temp.getName() + "->");
         }
-        System.out.println("Found!");
-        System.out.printf("Distance covered: %.2f km\n", totalCost);
+
+        System.out.print("Found!");
+        System.out.println();
+    }
+
+    //------------------------------------------------------------------------
+    //  Method Name : getLowestFScore
+    //  Description : gets the lowest FScore in the open list
+    //  Arguments   : String lastnode
+    //  Return      : Node, if it has chosen the lowest fscore
+    //------------------------------------------------------------------------
+    public Node getLowestFScore(LinkedList<Node> list) {
+        Node lowest = null;
+        
+        for(Node node : list) {
+            if(lowest == null || node.getFScore() < lowest.getFScore())
+                lowest = node;
+        }
+
+        return lowest;
+    }
+
+    //------------------------------------------------------------------------
+    //  Method Name : calculateEuclidianDistance
+    //  Description : returns the distance between two points (lat,lon) in km
+    //  Arguments   : String lat1
+    //                String lon1
+    //                String lat2
+    //                String lon2
+    //  Return      : float, after calculating the distance
+    //------------------------------------------------------------------------
+    public float calculateEuclidianDistance(float lat1, float lon1, float lat2, float lon2) {
+        float R = (float) 6371;
+        float dLat = toRad(lat2-lat1);
+        float dLon = toRad(lon2-lon1);
+
+        float a = (float) (Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(toRad(lat1)) * Math.cos(toRad(lat2))); 
+        float c = (float) (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))); 
+        float d = R * c;
+
+        return d;
+    }
+    
+    //------------------------------------------------------------------------
+    //  Method Name : calculateEuclidianDistance
+    //  Description : Converts a given value to radian
+    //  Arguments   : float value
+    //  Return      : float, after radian conversion
+    //------------------------------------------------------------------------
+    public float toRad(float value) {
+        return (float) (value * Math.PI / 180.0);
     }
 }
