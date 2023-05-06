@@ -23,7 +23,7 @@
 //      -unvisit                         - unvisits all nodes
 //      -reconstruct_path                - reconstruct the solution/path
 //      -getLowestFScore                 - get the lowest fscore in a given list of nodes
-//      -calculateEuclidianDistance      - get the distance between two points (lat,lon)
+//      -calculateHaversine      - get the distance between two points (lat,lon)
 //      -toRad                           - converts a value to radian
 //  Attributes:
 //      -graph(LinkedList<Node>)         - Number of places/vertices in the map.
@@ -89,7 +89,7 @@ class GraphTraversal {
             return -1;
         }
         
-        double h = calculateEuclidianDistance(
+        double h = calculateHaversine(
             p1.getLatitude(),
             p1.getLongitude(),
             p2.getLatitude(),
@@ -289,7 +289,7 @@ class GraphTraversal {
                 Node neighborNode = neighbor.node;
                 if(neighborNode.isVisited != true) {
                     neighborNode.setHScore(
-                        calculateEuclidianDistance(
+                        calculateHaversine(
                             neighborNode.getLatitude(),
                             neighborNode.getLongitude(),
                             goal.getLatitude(),
@@ -327,7 +327,9 @@ class GraphTraversal {
         while(openlist.size() > 0) {
             Node current = getLowestFScore(openlist);
 
+            System.out.println();
             System.out.print(current.getName() + "->");
+            System.out.println();
 
             if(current.getName().equals(goal_place.toLowerCase())) {
                 //solution found
@@ -340,7 +342,7 @@ class GraphTraversal {
                 double gtotal = current.getGScore() + neighbor.distance;
                 if(!closedlist.contains(neighbor.node) && !openlist.contains(neighbor.node)) {
                     neighbor.node.setHScore(
-                        calculateEuclidianDistance(
+                        calculateHaversine(
                             neighbor.node.getLatitude(),
                             neighbor.node.getLongitude(),
                             goal.getLatitude(),
@@ -350,6 +352,7 @@ class GraphTraversal {
                     neighbor.node.setParent(current);
                     neighbor.node.setGScore(gtotal);
                     neighbor.node.setFScore(neighbor.node.getGScore() + neighbor.node.getHScore());
+                    System.out.println(neighbor.node.getName() + "::> " + neighbor.node.getFScore() + " = " + neighbor.node.getGScore() + " + " + neighbor.node.getHScore());
                     openlist.add(neighbor.node);
                 } else {
                     if(gtotal < neighbor.node.getGScore()) {
@@ -446,7 +449,7 @@ class GraphTraversal {
     }
 
     //------------------------------------------------------------------------
-    //  Method Name : calculateEuclidianDistance
+    //  Method Name : calculateHaversine
     //  Description : returns the distance between two points (lat,lon) in km
     //  Arguments   : String lat1
     //                String lon1
@@ -454,7 +457,7 @@ class GraphTraversal {
     //                String lon2
     //  Return      : double, after calculating the distance
     //------------------------------------------------------------------------
-    public double calculateEuclidianDistance(double lat1, double lon1, double lat2, double lon2) {
+    public double calculateHaversine(double lat1, double lon1, double lat2, double lon2) {
         double R = 6371;
         double dLat = toRad(lat2-lat1);
         double dLon = toRad(lon2-lon1);
@@ -468,7 +471,7 @@ class GraphTraversal {
     }
     
     //------------------------------------------------------------------------
-    //  Method Name : calculateEuclidianDistance
+    //  Method Name : toRad
     //  Description : Converts a given value to radian
     //  Arguments   : double value
     //  Return      : double, after radian conversion
