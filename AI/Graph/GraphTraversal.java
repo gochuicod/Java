@@ -59,13 +59,13 @@ class GraphTraversal {
 
     //------------------------------------------------------------------------
     //  Method Name : addPlace
-    //  Description : Adds a place in string and double format.
+    //  Description : Adds a place in string and float format.
     //  Arguments   : String place
-    //                double lat
-    //                double lon
+    //                float lat
+    //                float lon
     //  Return      : void
     //------------------------------------------------------------------------
-    public void addPlace(String name, double lat, double lon) {
+    public void addPlace(String name, float lat, float lon) {
         Node newnode = new Node(name.toLowerCase());
         newnode.setCoordinates(lat,lon);
         graph.add(newnode);
@@ -76,7 +76,7 @@ class GraphTraversal {
     //  Description : Connect one vertex to another vertex.
     //  Arguments   : string v1
     //                string v2
-    //                double h
+    //                float h
     //  Return      : 0 (OK)
     //               -1 (NG - place is not in the list)
     //------------------------------------------------------------------------
@@ -89,7 +89,7 @@ class GraphTraversal {
             return -1;
         }
         
-        double h = calculateHaversine(
+        float h = calculateHaversine(
             p1.getLatitude(),
             p1.getLongitude(),
             p2.getLatitude(),
@@ -299,6 +299,7 @@ class GraphTraversal {
                     neighborNode.setParent(current);
                     neighborNode.setFScore(neighborNode.getHScore());
                     pq.add(neighborNode);
+                    // System.out.println(neighborNode.getName() + " ::> " + neighborNode.getFScore() + " = " + neighborNode.getGScore() + " + " + neighborNode.getHScore());
                 }
             }
         }
@@ -327,9 +328,7 @@ class GraphTraversal {
         while(openlist.size() > 0) {
             Node current = getLowestFScore(openlist);
 
-            System.out.println();
             System.out.print(current.getName() + "->");
-            System.out.println();
 
             if(current.getName().equals(goal_place.toLowerCase())) {
                 //solution found
@@ -339,7 +338,7 @@ class GraphTraversal {
             }
 
             for(Neighbor neighbor : current.neighbors) {
-                double gtotal = current.getGScore() + neighbor.distance;
+                float gtotal = current.getGScore() + neighbor.distance;
                 if(!closedlist.contains(neighbor.node) && !openlist.contains(neighbor.node)) {
                     neighbor.node.setHScore(
                         calculateHaversine(
@@ -352,7 +351,7 @@ class GraphTraversal {
                     neighbor.node.setParent(current);
                     neighbor.node.setGScore(gtotal);
                     neighbor.node.setFScore(neighbor.node.getGScore() + neighbor.node.getHScore());
-                    System.out.println(neighbor.node.getName() + "::> " + neighbor.node.getFScore() + " = " + neighbor.node.getGScore() + " + " + neighbor.node.getHScore());
+                    // System.out.println(neighbor.node.getName() + "::> " + gtotal + " km");
                     openlist.add(neighbor.node);
                 } else {
                     if(gtotal < neighbor.node.getGScore()) {
@@ -417,18 +416,40 @@ class GraphTraversal {
     private void reconstruct_path(Node lastnode) {
         System.out.println("Reconstructing path...");
         LinkedList<Node> path = new LinkedList<Node>();
+        
+        if(lastnode.getParent().getFScore() > 0) {
+            String leftAlignFormat = "| %-30s | %-15s |%n";
 
-        while(lastnode != null) {
-            path.addFirst(lastnode);
-            lastnode = lastnode.getParent(); // move backward
+            System.out.format("+--------------------------------+-----------------+%n");
+            System.out.format("|            Current             |     Distance    |%n");
+            System.out.format("+--------------------------------+-----------------+%n");
+            while(lastnode != null) {
+                path.addFirst(lastnode);
+                lastnode = lastnode.getParent(); // move backward
+            }
+            
+            for(Node i : path) {
+                if(i.getGScore() > 0) {
+                    System.out.format(leftAlignFormat, i.getName(), i.getGScore() + " km");
+                } else {
+                    System.out.format(leftAlignFormat, i.getName(), i.getFScore() + " km");
+                }
+            }
+            System.out.format("+--------------------------------+-----------------+%n");
+        } else {
+            while(lastnode != null) {
+                path.addFirst(lastnode);
+                lastnode = lastnode.getParent(); // move backward
+            }
+            
+            for(Node i : path) {
+                System.out.print(i.getName() + "->");
+            }
+            
+            System.out.print("Found!");
+            System.out.println();
         }
-        
-        for(Node i : path) {
-            System.out.print(i.getName() + "->");
-        }
-        
-        System.out.print("Found!");
-        System.out.println();
+
     }
 
     //------------------------------------------------------------------------
@@ -455,17 +476,17 @@ class GraphTraversal {
     //                String lon1
     //                String lat2
     //                String lon2
-    //  Return      : double, after calculating the distance
+    //  Return      : float, after calculating the distance
     //------------------------------------------------------------------------
-    public double calculateHaversine(double lat1, double lon1, double lat2, double lon2) {
-        double R = 6371;
-        double dLat = toRad(lat2-lat1);
-        double dLon = toRad(lon2-lon1);
+    public float calculateHaversine(float lat1, float lon1, float lat2, float lon2) {
+        float R = 6371;
+        float dLat = toRad(lat2-lat1);
+        float dLon = toRad(lon2-lon1);
 
-        double a = (Math.sin(dLat/2) * Math.sin(dLat/2) +
+        float a = (float) (Math.sin(dLat/2) * Math.sin(dLat/2) +
         Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(toRad(lat1)) * Math.cos(toRad(lat2))); 
-        double c = (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))); 
-        double d = R * c;
+        float c = (float) (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))); 
+        float d = R * c;
 
         return d;
     }
@@ -473,10 +494,10 @@ class GraphTraversal {
     //------------------------------------------------------------------------
     //  Method Name : toRad
     //  Description : Converts a given value to radian
-    //  Arguments   : double value
-    //  Return      : double, after radian conversion
+    //  Arguments   : float value
+    //  Return      : float, after radian conversion
     //------------------------------------------------------------------------
-    public double toRad(double value) {
-        return (value * Math.PI / 180.0);
+    public float toRad(float value) {
+        return (float) (value * Math.PI / 180.0);
     }
 }

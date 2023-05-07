@@ -28,7 +28,7 @@ public class Neighbor {
     // Attribute Definition.
     //---------------------------------------------------------------------
     Node node;
-    double distance;
+    float distance;
 
     //---------------------------------------------------------------------
     // Getters and Setters.
@@ -41,11 +41,11 @@ public class Neighbor {
         this.node = n;
     }
     
-    public double getDistance() {
+    public float getDistance() {
         return distance;
     }
 
-    public void setDistance(double d) {
+    public void setDistance(float d) {
         this.distance = d;
     }
     
@@ -53,10 +53,10 @@ public class Neighbor {
     //  Method Name : Neighbor
     //  Description : Constructor. Initialize the need attributes.
     //  Arguments   : Node n
-    //                double d
+    //                float d
     //  Return      : void.
     //------------------------------------------------------------------------
-    public Neighbor(Node n, double d) {
+    public Neighbor(Node n, float d) {
         this.node = n;
         this.distance = d;
     }

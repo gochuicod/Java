@@ -39,24 +39,24 @@ public class Node implements Comparable<Node>{ //<-- implement Comparable interf
     //---------------------------------------------------------------------
     public LinkedList<Neighbor> neighbors;
     public boolean isVisited;
-    private Hashtable<String, Double> coordinates;
+    private Hashtable<String, Float> coordinates;
     private String name;
     private Node parent;
-    private double f,h,g;
+    private float f,h,g;
 
     //---------------------------------------------------------------------
     // Getters and Setters.
     //---------------------------------------------------------------------
-    public double getLatitude() {
+    public float getLatitude() {
         return this.coordinates.get("lat");
     }
 
-    public double getLongitude() {
+    public float getLongitude() {
         return this.coordinates.get("lon");
     }
 
-    public void setCoordinates(double lat, double lon) {
-        this.coordinates = new Hashtable<String, Double>();
+    public void setCoordinates(float lat, float lon) {
+        this.coordinates = new Hashtable<String, Float>();
         this.coordinates.put("lat", lat);
         this.coordinates.put("lon", lon);
     }
@@ -77,27 +77,27 @@ public class Node implements Comparable<Node>{ //<-- implement Comparable interf
         this.parent = newParent;
     }
 
-    public double getFScore() {
+    public float getFScore() {
         return this.f;
     }
 
-    public void setFScore(double newFScore) {
+    public void setFScore(float newFScore) {
         this.f = newFScore;
     }
 
-    public double getHScore() {
+    public float getHScore() {
         return this.h;
     }
 
-    public void setHScore(double newHScore) {
+    public void setHScore(float newHScore) {
         this.h = newHScore;
     }
 
-    public double getGScore() {
+    public float getGScore() {
         return this.g;
     }
 
-    public void setGScore(double newGScore) {
+    public void setGScore(float newGScore) {
         this.g = newGScore;
     }
 
@@ -105,7 +105,7 @@ public class Node implements Comparable<Node>{ //<-- implement Comparable interf
     //  Method Name : Node
     //  Description : Constructor. Initialize the need attributes.
     //  Arguments   : Node n
-    //                double d
+    //                float d
     //  Return      : void.
     //------------------------------------------------------------------------
     public Node(String n) {
@@ -118,10 +118,10 @@ public class Node implements Comparable<Node>{ //<-- implement Comparable interf
     //  Method Name : AddNeighbor
     //  Description : adds a neighbor to the current node
     //  Arguments   : Node n
-    //                double d
+    //                float d
     //  Return      : void
     //------------------------------------------------------------------------
-    public void addNeighbor(Node n, double d) {
+    public void addNeighbor(Node n, float d) {
         Neighbor neighbor = new Neighbor(n, d);
         neighbors.add(neighbor);
     }
